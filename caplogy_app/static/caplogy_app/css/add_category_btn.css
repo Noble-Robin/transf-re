@@ -1,0 +1,27 @@
+.add-category-btn {
+  width: 100%;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  padding: 1.25rem 2rem;
+  border-radius: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+.add-category-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 90%, black);
+}
+.add-category-btn svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: white;
+}

@@ -1,0 +1,26 @@
+{% extends 'caplogy_app/base.html' %}
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+  <div class="page-container">
+    <div class="welcome-section">
+      <h2>Gestion Moodle</h2>
+      <p>Bienvenue sur votre interface de gestion Moodle. Gérez facilement vos catégories et contenus.</p>
+      
+      <a href="{% url 'categories' %}" class="btn btn-lg" style="text-decoration: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" 
+             style="width:1.25rem;height:1.25rem;margin-right:0.5rem;">
+          <path fill-rule="evenodd" d="M3 6.75A.75.75 0 013.75 6h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 6.75zM3 12a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 12zm0 5.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" clip-rule="evenodd"/>
+        </svg>
+        Voir les catégories
+      </a>
+      <a href="{% url 'courses' %}" class="btn btn-lg" style="text-decoration: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" 
+             style="width:1.25rem;height:1.25rem;margin-right:0.5rem;">
+          <path fill-rule="evenodd" d="M3 6.75A.75.75 0 013.75 6h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 6.75zM3 12a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 12zm0 5.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" clip-rule="evenodd"/>
+        </svg>
+        Voir les cours
+      </a>
+    </div>
+  </div>
+{% endblock %}

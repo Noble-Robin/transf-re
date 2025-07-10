@@ -1,0 +1,14 @@
+# Environnement virtuel
+venv/
+
+# Base de données
+db.sqlite3
+
+# Fichiers de configuration avec données sensibles
+users.json
+.env
+
+# Fichiers compilés Python
+__pycache__/
+*.pyc
+

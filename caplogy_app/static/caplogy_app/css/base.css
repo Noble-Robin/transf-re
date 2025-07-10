@@ -1,0 +1,24 @@
+/* Base styles */
+:root {
+  --color-background: #FFFFFF;
+  --color-surface: #F4F6F8;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-accent: #00A8E8;
+  --color-success: #22C55E;
+  --color-error: #EF4444;
+  --color-border: #E5E7EB;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}

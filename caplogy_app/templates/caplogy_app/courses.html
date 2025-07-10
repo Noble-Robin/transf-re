@@ -1,0 +1,97 @@
+{% extends 'caplogy_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-container">
+    <section class="filter-bar">
+            <div class="form-group" id="schoolGroup">
+                <label for="schoolFilter">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1rem;height:1rem;margin-right:0.25rem;">
+                        <path d="M11.7 2.805a.75.75 0 01.6 0A60.65 60.65 0 0122.83 8.72a.75.75 0 01-.231 1.337 49.949 49.949 0 00-9.902 3.912l-.003.002-.34.18a.75.75 0 01-.707 0A50.009 50.009 0 007.5 12.174v-.224c0-.131.067-.248.172-.311a54.614 54.614 0 014.653-2.52.75.75 0 00-.65-1.352 56.129 56.129 0 00-4.78 2.589 1.858 1.858 0 00-.859 1.228 49.803 49.803 0 00-4.634-1.527.75.75 0 01-.231-1.337A60.653 60.653 0 0111.7 2.805z"/>
+                        <path d="M13.06 15.473a48.45 48.45 0 017.666-3.282c.134 1.414.22 2.843.255 4.285a.75.75 0 01-.46.71 47.878 47.878 0 00-8.105 4.342.75.75 0 01-.832 0 47.877 47.877 0 00-8.104-4.342.75.75 0 01-.461-.71c.035-1.442.121-2.87.255-4.286A48.4 48.4 0 016 15.473v.534c0 .164-.013.327-.038.487A4.875 4.875 0 004.5 20.25a.75.75 0 01-.75-.75V19.5a4.875 4.875 0 011.462-3.494l.818-.818a.75.75 0 011.06 0l.818.818c.29.29.453.685.453 1.094v.755a48.14 48.14 0 005.157-2.423z"/>
+                    </svg>
+                    École
+                </label>
+                <div class="searchable-select" id="schoolSelectContainer">
+                    <input type="text" id="schoolSearchInput" placeholder="Rechercher une école..." />
+                    <div class="dropdown-icon">▼</div>
+                    <div class="dropdown-list" id="schoolDropdown">
+                        <div class="dropdown-item" data-value="">Toutes les écoles</div>
+                        {% for school in schools %}
+                        <div class="dropdown-item" data-value="{{ school.id }}" {% if school.id|stringformat:"s" == selected_school %}data-selected="true"{% endif %}>
+                            {{ school.name }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" id="schoolFilter" />
+                </div>
+            </div>
+        
+            <div class="form-group hidden" id="yearGroup">
+                <label for="yearFilter">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1rem;height:1rem;margin-right:0.25rem;">
+                        <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3a.75.75 0 011.5 0v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clip-rule="evenodd"/>
+                    </svg>
+                    Année
+                </label>
+                <select id="yearFilter">
+                    <option value="">Toutes les années</option>
+                </select>
+            </div>
+        
+            <div class="form-group hidden" id="formationGroup">
+                <label for="formationFilter">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1rem;height:1rem;margin-right:0.25rem;">
+                        <path d="M11.25 4.533A9.707 9.707 0 006 3a9.735 9.735 0 00-3.25.555.75.75 0 00-.5.707v14.25a.75.75 0 001 .707A8.237 8.237 0 016 18.75c1.995 0 3.823.707 5.25 1.886V4.533zM12.75 20.636A8.214 8.214 0 0118 18.75c.966 0 1.89.166 2.75.47a.75.75 0 001-.708V4.262a.75.75 0 00-.5-.707A9.735 9.735 0 0018 3a9.707 9.707 0 00-5.25 1.533v16.103z"/>
+                    </svg>
+                    Formation
+                </label>
+                <select id="formationFilter">
+                    <option value="">Toutes les formations</option>
+                </select>
+            </div>
+        
+            <div class="form-group" id="searchGroup">
+                <label for="searchFilter">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1rem;height:1rem;margin-right:0.25rem;">
+                        <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.59 5.28l4.69 4.69a.75.75 0 11-1.06 1.06l-4.69-4.69A8.25 8.25 0 012.25 10.5z" clip-rule="evenodd"/>
+                    </svg>
+                    Recherche
+                </label>
+                <input type="text" id="searchFilter" placeholder="Rechercher un titre…">
+            </div>
+        
+            <div class="form-group" id="resetGroup">
+                <label>&nbsp;</label>
+                <button type="button" id="resetFilters" class="btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:1rem;height:1rem;">
+                        <path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H2.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0015.059-4.035.75.75 0 00-.53-.918z" clip-rule="evenodd"/>
+                    </svg>
+                    Réinitialiser
+                </button>
+            </div>
+    </section>
+    <section class="table-container">
+        <table id="coursesTable">
+            <thead>
+                <tr>
+                    <th>Titre</th>
+                    <th>École</th>
+                    <th>Année</th>
+                    <th>Formation</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+</div>
+
+<a href="{% url 'create_course' %}" class="floating-add-btn" title="Créer un nouveau cours">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path fill-rule="evenodd" d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z" clip-rule="evenodd"/>
+    </svg>
+</a>
+
+<script src="{% static 'caplogy_app/js/course_filters.js' %}"></script>
+{% endblock %}

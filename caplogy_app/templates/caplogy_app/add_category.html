@@ -1,0 +1,28 @@
+{% extends 'caplogy_app/base.html' %}
+{% load static %}
+{% block title %}Ajouter une catégorie{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'caplogy_app/css/school_logo.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1 class="page-title">Ajouter une catégorie principale</h1>
+    <form method="post" enctype="multipart/form-data" class="school-logo-form-container">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+        </div>
+        <div class="form-group">
+            {{ form.image.label_tag }}
+            {{ form.image }}
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Créer la catégorie</button>
+            <a href="{% url 'categories' %}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

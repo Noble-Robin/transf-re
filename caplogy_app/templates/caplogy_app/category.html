@@ -1,0 +1,181 @@
+{% extends 'caplogy_app/base.html' %}
+{% load static %}
+{% block title %}Catégories{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'caplogy_app/css/category_filters.css' %}">
+<link rel="stylesheet" href="{% static 'caplogy_app/css/add_category_btn.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="page-container">
+    <h1 class="page-title">Catégories Moodle</h1>
+    
+    <!-- Barre de recherche -->
+    <div class="search-container">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Rechercher une catégorie..." class="form-input">
+      </div>
+    </div>
+    
+    <!-- Filtres -->
+    <div class="filter-container">
+      <div class="filter-section">
+        <label for="course-filter" class="filter-label">Filtrer par cours :</label>
+        <select id="course-filter" class="filter-select">
+          <option value="all" {% if current_filter == 'all' %}selected{% endif %}>Toutes les catégories</option>
+          <option value="with_courses" {% if current_filter == 'with_courses' %}selected{% endif %}>Avec cours</option>
+          <option value="without_courses" {% if current_filter == 'without_courses' %}selected{% endif %}>Sans cours</option>
+        </select>
+      </div>
+      {% if current_filter != 'all' %}
+        <div class="filter-reset">
+          <a href="{% url 'categories' %}" class="reset-filter-btn">Réinitialiser les filtres</a>
+        </div>
+      {% endif %}
+    </div>
+    
+    {% if categories %}
+      <div class="categories-grid">
+        {% for category in categories %}
+          <div class="category-card">
+            <h3 class="category-name">{{ category.name }}</h3>
+            <p class="category-description">{{ category.description|default:"Aucune description disponible" }}</p>
+            <div class="category-meta">
+              {% if category.coursecount > 0 %}
+                <span class="course-count">{{ category.coursecount }} cours</span>
+              {% else %}
+                <span class="course-count no-courses">Aucun cours</span>
+              {% endif %}
+            </div>
+            <div class="category-actions">
+              {% if category.has_courses %}
+                <a href="{% url 'category_courses' category.id %}" class="btn btn-sm" style="text-decoration: none;">Voir les cours</a>
+              {% endif %}
+              {% if category.has_subcategories %}
+                <a href="{% url 'subcategories' category.id %}" class="btn btn-sm btn-secondary" style="text-decoration: none;">Sous-catégories</a>
+              {% endif %}
+              <a href="{% url 'school_image_upload' category.id %}" class="btn btn-sm btn-info" style="text-decoration: none;">Logo</a>
+              <button class="btn btn-sm btn-danger" onclick="deleteCategory('{{ category.id }}')">Supprimer</button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>Aucune catégorie trouvée</h3>
+        <p>Il n'y a actuellement aucune catégorie disponible ou il y a un problème de connexion avec Moodle.</p>
+        <a href="{% url 'home' %}" class="btn">Retour à l'accueil</a>
+      </div>
+    {% endif %}
+
+    <!-- Bouton flottant "Ajouter une catégorie" -->
+    <a href="{% url 'add_category_page' %}" class="add-category-fab" title="Ajouter une catégorie">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 5v14m7-7H5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    </a>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('search-input');
+      const categoryCards = document.querySelectorAll('.category-card');
+
+      function filterCategories() {
+        const searchTerm = searchInput.value.toLowerCase();
+        let visibleCount = 0;
+
+        categoryCards.forEach(card => {
+          const categoryName = card.querySelector('.category-name').textContent.toLowerCase();
+          const categoryDesc = card.querySelector('.category-description').textContent.toLowerCase();
+          
+          if (categoryName.includes(searchTerm) || categoryDesc.includes(searchTerm)) {
+            card.style.display = 'block';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Afficher un message si aucune catégorie trouvée
+        const grid = document.querySelector('.categories-grid');
+        let noResultsMsg = document.getElementById('no-results');
+        
+        if (visibleCount === 0 && searchTerm.length > 0) {
+          if (!noResultsMsg) {
+            noResultsMsg = document.createElement('div');
+            noResultsMsg.id = 'no-results';
+            noResultsMsg.className = 'empty-state';
+            noResultsMsg.innerHTML = '<h3>Aucune catégorie trouvée</h3><p>Aucune catégorie ne correspond à votre recherche.</p>';
+            grid.appendChild(noResultsMsg);
+          }
+        } else if (noResultsMsg) {
+          noResultsMsg.remove();
+        }
+      }
+
+      searchInput.addEventListener('input', filterCategories);
+      
+      // Gestion du filtre de cours
+      const courseFilter = document.getElementById('course-filter');
+      if (courseFilter) {
+        courseFilter.addEventListener('change', function() {
+          const currentUrl = new URL(window.location.href);
+          if (this.value === 'all') {
+            currentUrl.searchParams.delete('filter_courses');
+          } else {
+            currentUrl.searchParams.set('filter_courses', this.value);
+          }
+          window.location.href = currentUrl.toString();
+        });
+      }
+    });
+
+    function openAddCategoryModal(parentId) {
+      const name = prompt("Nom de la nouvelle catégorie :");
+      if (!name || name.trim() === "") {
+        alert("Le nom de la catégorie ne peut pas être vide.");
+        return;
+      }
+      console.log("Sending data:", { name: name.trim(), parent_id: parentId });  // Log des données envoyées
+      fetch("{% url 'add_category' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ name: name.trim(), parent_id: parentId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert("Catégorie ajoutée avec succès !");
+          location.reload();
+        } else {
+          alert("Erreur : " + data.error);
+        }
+      });
+    }
+
+    function deleteCategory(categoryId) {
+      if (confirm("Êtes-vous sûr de vouloir supprimer cette catégorie ?")) {
+        fetch("{% url 'delete_category' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+          },
+          body: JSON.stringify({ category_id: categoryId })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert("Catégorie supprimée avec succès !");
+            location.reload();
+          } else {
+            alert("Erreur : " + data.error);
+          }
+        });
+      }
+    }
+  </script>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'caplogy_app/base.html' %}
+{% load static %}
+{% block title %}Cours - {{ category_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'caplogy_app/css/pages.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="page-container">
+    <!-- Navigation -->
+    <div class="breadcrumb">
+      <a href="{% url 'categories' %}" class="breadcrumb-link">Catégories</a>
+      {% for item in breadcrumb_path %}
+        <span class="breadcrumb-separator">›</span>
+        {% if not forloop.last %}
+          <a href="{% url 'subcategories' item.id %}" class="breadcrumb-link">{{ item.name }}</a>
+        {% else %}
+          <span class="breadcrumb-current">{{ item.name }} - Cours</span>
+        {% endif %}
+      {% endfor %}
+      {% if not breadcrumb_path %}
+        <span class="breadcrumb-separator">›</span>
+        <span class="breadcrumb-current">{{ category_name }} - Cours</span>
+      {% endif %}
+    </div>
+
+    <h1 class="page-title">
+      Cours - 
+      {% if breadcrumb_path %}
+        {% for item in breadcrumb_path %}{{ item.name }}{% if not forloop.last %} › {% endif %}{% endfor %}
+      {% else %}
+        {{ category_name }}
+      {% endif %}
+    </h1>
+    
+    <!-- Barre de recherche -->
+    <div class="search-container">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Rechercher un cours..." class="form-input">
+      </div>
+    </div>
+    
+    {% if courses %}
+      <div class="courses-grid">
+        {% for course in courses %}
+          <div class="course-card">
+            <div class="course-header">
+              <h3 class="course-name">{{ course.fullname }}</h3>
+              <span class="course-shortname">{{ course.shortname }}</span>
+            </div>
+            
+            {% if course.summary %}
+              <div class="course-summary">
+                <p>{{ course.summary|truncatewords:20 }}</p>
+              </div>
+            {% endif %}
+            
+            <div class="course-meta">
+              <div class="course-info">
+                <span class="course-id">ID: {{ course.id }}</span>
+                {% if course.source_category_name %}
+                  <span class="course-category">Catégorie: {{ course.source_category_name }}</span>
+                {% endif %}
+                {% if course.startdate %}
+                  <span class="course-date">Créé le: {{ course.startdate|date:"d/m/Y" }}</span>
+                {% endif %}
+              </div>
+            </div>
+            
+            <div class="course-actions">
+              <a href="{% url 'edit_course' course.id %}" class="btn btn-sm btn-primary">
+                Modifier
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>Aucun cours trouvé</h3>
+        <p>Il n'y a actuellement aucun cours dans cette catégorie.</p>
+        <div class="empty-state-actions">
+          <a href="{% url 'create_course' %}" class="btn btn-primary">Créer un cours</a>
+          <a href="{% url 'categories' %}" class="btn btn-secondary">Retour aux catégories</a>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Actions globales -->
+    <div class="global-actions">
+      <a href="{% url 'create_course' %}" class="btn btn-lg btn-primary">Créer un nouveau cours</a>
+      <a href="{% url 'categories' %}" class="btn btn-lg btn-secondary">Retour aux catégories</a>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('search-input');
+      const courseCards = document.querySelectorAll('.course-card');
+
+      function filterCourses() {
+        const searchTerm = searchInput.value.toLowerCase();
+        let visibleCount = 0;
+
+        courseCards.forEach(card => {
+          const courseName = card.querySelector('.course-name').textContent.toLowerCase();
+          const courseShortname = card.querySelector('.course-shortname').textContent.toLowerCase();
+          const courseSummary = card.querySelector('.course-summary p');
+          const summaryText = courseSummary ? courseSummary.textContent.toLowerCase() : '';
+          
+          if (courseName.includes(searchTerm) || 
+              courseShortname.includes(searchTerm) || 
+              summaryText.includes(searchTerm)) {
+            card.style.display = 'block';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Afficher un message si aucun cours trouvé
+        const grid = document.querySelector('.courses-grid');
+        let noResultsMsg = document.getElementById('no-results');
+        
+        if (visibleCount === 0 && searchTerm.length > 0) {
+          if (!noResultsMsg) {
+            noResultsMsg = document.createElement('div');
+            noResultsMsg.id = 'no-results';
+            noResultsMsg.className = 'empty-state';
+            noResultsMsg.innerHTML = '<h3>Aucun cours trouvé</h3><p>Aucun cours ne correspond à votre recherche.</p>';
+            grid.appendChild(noResultsMsg);
+          }
+        } else if (noResultsMsg) {
+          noResultsMsg.remove();
+        }
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener('input', filterCourses);
+      }
+    });
+  </script>
+{% endblock %}

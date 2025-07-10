@@ -1,0 +1,330 @@
+/* Styles spécifiques pour les formulaires de création */
+
+.form-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    background: var(--surface);
+    padding: 2rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.form-container h1 {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+}
+
+.input-large {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    width: 100%;
+}
+
+/* Sélecteurs de catégories en cascade */
+#category-select {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#category-select select {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+#category-select select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+/* Sections dynamiques */
+#sections-list {
+    list-style: none;
+    padding: 0;
+}
+
+#sections-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+}
+
+#sections-list input[type="text"] {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    background: var(--surface);
+}
+
+.delete-section {
+    background-color: var(--error);
+    color: #F8FAFC;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    min-width: 80px;
+}
+
+.delete-section:hover {
+    background-color: color-mix(in srgb, var(--error) 90%, black);
+}
+
+.delete-section:focus {
+    outline: 2px solid var(--error);
+    outline-offset: 2px;
+}
+
+/* Boutons spéciaux pour formulaires */
+#add-section {
+    background: var(--success);
+    border: none;
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 1rem;
+}
+
+#add-section:hover {
+    background: color-mix(in srgb, var(--success) 90%, black);
+}
+
+/* Modal pour sélection de fichiers */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--surface);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80%;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.modal-body ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.modal-body li {
+    padding: 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0.25rem;
+    margin-bottom: 0.25rem;
+    transition: background 0.2s ease;
+}
+
+.modal-body li:hover {
+    background: var(--primary);
+    color: #fff;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+    background: var(--bg);
+}
+
+/* Composant de recherche personnalisé */
+.searchable-select {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    z-index: 1000; /* Z-index élevé pour le conteneur */
+}
+
+.searchable-select input[type="text"] {
+    width: 100%;
+    min-width: 0;
+    padding: 0.875rem 2.5rem 0.875rem 1rem;
+    border: 2px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+
+.searchable-select input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 
+        0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent),
+        0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    cursor: text;
+    transform: translateY(-1px);
+}
+
+.dropdown-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-secondary);
+    pointer-events: none;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.searchable-select.open .dropdown-icon {
+    transform: translateY(-50%) rotate(180deg);
+    color: var(--color-accent);
+}
+
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-background);
+    border: 2px solid var(--color-accent);
+    border-radius: 12px;
+    box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.15),
+        0 0 0 1px color-mix(in srgb, var(--color-accent) 30%, transparent);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 99999; /* Z-index encore plus élevé */
+    display: none;
+    margin-top: 4px;
+    backdrop-filter: blur(10px);
+}
+
+.searchable-select.open .dropdown-list {
+    display: block;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-item {
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-light);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(135deg, var(--hover-bg), color-mix(in srgb, var(--hover-bg) 90%, var(--color-accent)));
+    transform: translateX(4px);
+}
+
+.dropdown-item.selected {
+    background: linear-gradient(135deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 80%, var(--color-success)));
+    color: white;
+    font-weight: 600;
+}
+
+.dropdown-item.selected::before {
+    content: '✓';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.dropdown-item.hidden {
+    display: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .form-container {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    #sections-list li {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .delete-section {
+        align-self: flex-end;
+        width: fit-content;
+    }
+}

@@ -1,0 +1,30 @@
+{% extends 'caplogy_app/base.html' %}
+{% load static %}
+{% block title %}{{ category_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'caplogy_app/css/school_logo.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1 class="page-title">{{ category_name }}</h1>
+    <form method="post" enctype="multipart/form-data" class="school-logo-form-container">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_image" class="form-label">Logo</label>
+            {{ form.image }}
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <a href="{% url 'categories' %}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+    {% if form.instance.image %}
+        <div class="school-logo-current">
+            <h3>Logo actuel :</h3>
+            <img src="{{ form.instance.image.url }}" alt="Logo">
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

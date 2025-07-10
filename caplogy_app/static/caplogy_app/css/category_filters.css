@@ -1,0 +1,115 @@
+/* Styles pour les filtres de catégories */
+.filter-container {
+  margin: 1rem 0 2rem 0;
+  padding: 1rem;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  font-weight: 500;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.filter-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  min-width: 200px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+}
+
+.filter-reset {
+  margin-left: auto;
+}
+
+.reset-filter-btn {
+  color: var(--danger-color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.reset-filter-btn:hover {
+  background-color: rgba(var(--danger-rgb), 0.1);
+  text-decoration: none;
+}
+
+/* Styles pour le bouton flottant d'ajout de catégorie */
+.add-category-fab {
+  position: fixed;
+  right: 2.5rem;
+  bottom: 2.5rem;
+  z-index: 1000;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--color-accent) 40%, transparent);
+  font-size: 2.5rem;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.add-category-fab:hover {
+  background: color-mix(in srgb, var(--color-accent) 90%, black);
+  transform: scale(1.08);
+}
+
+.add-category-fab svg {
+  width: 2.2rem;
+  height: 2.2rem;
+  fill: white;
+  pointer-events: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .filter-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+  }
+  
+  .filter-select {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .filter-reset {
+    margin-left: 0;
+    text-align: center;
+  }
+}

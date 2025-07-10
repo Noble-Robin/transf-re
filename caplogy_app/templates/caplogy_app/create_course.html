@@ -1,0 +1,150 @@
+{% extends 'caplogy_app/base.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Modifier le cours{% else %}Créer un cours{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'caplogy_app/css/create_course.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="create-course-container">
+    <div class="header-section">
+        <h1>{% if is_edit %}Modifier le cours{% else %}Créer un nouveau cours{% endif %}</h1>
+        <p class="subtitle">{% if is_edit %}Modifiez les informations de votre cours{% else %}Configurez votre cours de manière interactive{% endif %}</p>
+    </div>
+
+    <form method="post" id="course-form" class="course-form">
+        {% csrf_token %}
+        
+        <!-- Section Titre -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2>Informations générales</h2>
+            </div>
+            <div class="form-field">
+                <label for="title">Titre du cours</label>
+                <input type="text" id="title" name="title" required 
+                       placeholder="Entrez le titre de votre cours..." 
+                       value="{% if course %}{{ course.fullname }}{% endif %}"
+                       class="modern-input">
+            </div>
+        </div>
+
+        <!-- Section Emplacement -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2>Emplacement Moodle</h2>
+            </div>
+            <div class="category-container">
+                <div class="form-field">
+                    <label for="cat-level-0">Catégorie principale</label>
+                    <select id="cat-level-0" name="category" class="modern-select">
+                        <option value="">Sélectionnez une catégorie...</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="cat-level-1">Sous-catégorie</label>
+                    <select id="cat-level-1" name="subcategory" class="modern-select hidden">
+                        <option value="">Sélectionnez une sous-catégorie...</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="cat-level-2">Sous-sous-catégorie</label>
+                    <select id="cat-level-2" name="subsubcategory" class="modern-select hidden">
+                        <option value="">Sélectionnez une sous-sous-catégorie...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Sections -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2>Structure du cours</h2>
+                <p class="section-description">Créez les sections de votre cours et ajoutez des ressources</p>
+            </div>
+            <div class="sections-container">
+                <div id="sections-list" class="sections-list"></div>
+                <button type="button" id="add-section" class="add-section-btn">
+                    Ajouter une section
+                </button>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="history.back()">
+                Annuler
+            </button>
+            <button type="submit" class="btn-primary">
+                {% if is_edit %}Modifier le cours{% else %}Créer le cours{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Modal pour sélection de fichiers -->
+<div id="nc-modal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>📁 Choisir un fichier</h3>
+            <button class="modal-close" id="nc-close">×</button>
+        </div>
+        <div class="modal-body">
+            <div id="nc-current-path" class="current-path-title" style="font-weight:600;font-size:1.1rem;margin-bottom:0.5rem;"></div>
+            <div class="file-browser">
+                <ul id="nc-list" class="file-list"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if is_edit and course %}
+<div id="course-data" 
+     data-id="{{ course.id }}" 
+     data-categoryid="{{ course.categoryid|default:0 }}" 
+     data-fullname="{{ course.fullname }}" 
+     data-shortname="{{ course.shortname|default:"" }}" 
+     style="display: none;"></div>
+
+{% if preselection_data %}
+<div id="preselection-data" style="display: none;">{{ preselection_data|safe }}</div>
+{% endif %}
+
+{% if course.sections %}
+<div id="course-sections-data" style="display: none;">
+    {% for section in course.sections %}
+    <div class="section-data" 
+         data-id="{{ section.id|default:"" }}"
+         data-name="{{ section.name|default:"" }}"
+         data-summary="{{ section.summary|default:"" }}">
+        {% if section.modules %}
+        <div class="section-modules">
+            {% for module in section.modules %}
+            <div class="module-data"
+                 data-id="{{ module.id|default:"" }}"
+                 data-name="{{ module.name|default:"" }}"
+                 data-modname="{{ module.modname|default:"" }}"
+                 data-url="{{ module.url|default:"" }}"
+                 data-description="{{ module.description|default:"" }}"></div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<script>
+    window.isEdit = true;
+    // Les données seront lues depuis l'élément #course-data dans le JavaScript
+</script>
+{% else %}
+<script>
+    window.isEdit = false;
+</script>
+{% endif %}
+
+<script src="{% static 'caplogy_app/js/create_course.js' %}"></script>
+{% endblock %}
