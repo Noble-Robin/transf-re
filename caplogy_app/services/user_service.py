@@ -38,10 +38,10 @@ class UserService:
         """
         try:
             print(f"Tentative de connexion LDAP vers {settings.AD_SERVER}")
-            server = Server(settings.AD_SERVER, get_info=ALL)
+            server = Server(settings.AD_SERVER, get_info=ALL, use_ssl=True)
             user_dn = f"{settings.AD_DOMAIN}\\{username}"
             print(f"DN utilisateur: {user_dn}")
-            
+            print(f"DEBUG: Tentative de bind avec le compte {user_dn}")
             conn = Connection(
                 server,
                 user=user_dn,
@@ -49,32 +49,35 @@ class UserService:
                 authentication=NTLM,
                 auto_bind=False
             )
-            
             print("Tentative de bind...")
             if not conn.bind():
                 print(f"Erreur de liaison LDAP: {conn.result}")
                 return None
-            
             print("Connexion LDAP réussie!")
-            
+            print(f"DEBUG: L'utilisateur {username} a réussi le bind LDAP.")
         except Exception as e:
             print(f"Erreur de connexion LDAP: {e}")
             print(f"Type d'erreur: {type(e)}")
             return None
 
         # Recherche des groupes AD pour déterminer le rôle
+        print(f"DEBUG: Recherche LDAP sur la base {settings.AD_SEARCH_BASE} pour l'utilisateur {username}")
         conn.search(
             settings.AD_SEARCH_BASE,
             f"(sAMAccountName={username})",
-            attributes=['memberOf']
+            attributes=['memberOf', 'cn', 'mail']
         )
+        print(f"DEBUG: Résultats LDAP: {conn.entries}")
         entry = conn.entries[0] if conn.entries else None
         groupes = entry.memberOf.values if entry and hasattr(entry.memberOf, 'values') else []
         role = 'admin' if any('Domain Admins' in g for g in groupes) else 'user'
+        print(f"DEBUG: Groupes trouvés: {groupes}")
+        print(f"DEBUG: Rôle attribué: {role}")
 
         # Synchronisation avec Django
         user, _ = User.objects.get_or_create(username=username)
         UserProfile.objects.get_or_create(user=user, defaults={'role': role})
+        print(f"DEBUG: Utilisateur Django synchronisé: {username}, rôle: {role}")
 
         return {'username': username, 'role': role}
 
@@ -88,3 +91,36 @@ class UserService:
         self.users.append(entry)
         self._save()
         return True
+
+    def get_ldap_profs(self):
+        """
+        Récupère tous les utilisateurs de l'OU Utilisateurs Caplogy (profs) depuis LDAP
+        """
+        try:
+            server = Server(settings.AD_SERVER, get_info=ALL, use_ssl=True)
+            # Connexion avec un compte de service (à adapter si besoin)
+            conn = Connection(
+                server,
+                user=f"{settings.AD_DOMAIN}\\{os.getenv('NEXTCLOUD_USER')}",
+                password=os.getenv('NEXTCLOUD_PASSWORD'),
+                authentication=NTLM,
+                auto_bind=True
+            )
+            # Recherche dans l'OU Utilisateurs Caplogy
+            search_base = 'OU=Utilisateurs Caplogy,' + settings.AD_SEARCH_BASE
+            conn.search(
+                search_base,
+                '(objectClass=person)',
+                attributes=['sAMAccountName', 'cn', 'mail']
+            )
+            profs = []
+            for entry in conn.entries:
+                profs.append({
+                    'username': str(entry.sAMAccountName),
+                    'name': str(entry.cn),
+                    'mail': str(entry.mail) if hasattr(entry, 'mail') else ''
+                })
+            return profs
+        except Exception as e:
+            print(f"Erreur LDAP lors de la récupération des profs: {e}")
+            return []

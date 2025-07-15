@@ -1,0 +1,22 @@
+Watching for file changes with StatReloader
+[15/Jul/2025 14:39:52] "GET /courses/ HTTP/1.1" 200 40533
+[15/Jul/2025 14:39:52] "GET /static/caplogy_app/css/theme.css HTTP/1.1" 200 14411
+[15/Jul/2025 14:39:52] "GET /static/caplogy_app/css/base.css HTTP/1.1" 200 515
+[15/Jul/2025 14:39:52] "GET /static/caplogy_app/css/layout.css HTTP/1.1" 200 967
+[15/Jul/2025 14:39:52] "GET /static/caplogy_app/css/components.css HTTP/1.1" 200 4467
+[15/Jul/2025 14:39:52] "GET /static/caplogy_app/css/pages.css HTTP/1.1" 200 5296
+[15/Jul/2025 14:39:52] "GET /static/caplogy_app/css/forms.css HTTP/1.1" 200 7317
+[15/Jul/2025 14:39:52] "GET /static/caplogy_app/css/courses.css HTTP/1.1" 200 9254
+[15/Jul/2025 14:39:52] "GET /static/caplogy_app/css/responsive.css HTTP/1.1" 200 8761
+[15/Jul/2025 14:39:52] "GET /static/caplogy_app/js/course_filters.js HTTP/1.1" 200 11123
+[15/Jul/2025 14:39:52] "GET /static/caplogy_app/logo1.png HTTP/1.1" 200 15685
+Not Found: /favicon.ico
+[15/Jul/2025 14:39:52] "GET /favicon.ico HTTP/1.1" 404 7839
+[15/Jul/2025 14:39:54] "GET /api/courses/? HTTP/1.1" 200 969
+[15/Jul/2025 14:40:20] "GET /courses/edit/21/ HTTP/1.1" 200 25077
+[15/Jul/2025 14:40:20] "GET /api/categories/ HTTP/1.1" 200 9122
+[15/Jul/2025 14:41:19] "POST /courses/edit/21/ HTTP/1.1" 302 0
+[15/Jul/2025 14:41:20] "GET /courses/ HTTP/1.1" 200 40639
+[15/Jul/2025 14:41:22] "GET /api/courses/? HTTP/1.1" 200 969
+[15/Jul/2025 14:41:44] "GET /courses/edit/21/ HTTP/1.1" 200 25077
+[15/Jul/2025 14:41:44] "GET /api/categories/ HTTP/1.1" 200 9122

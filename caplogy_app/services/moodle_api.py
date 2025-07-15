@@ -5,6 +5,29 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class MoodleAPI:
+    def get_course_teachers(self, course_id):
+        """
+        Récupère la liste des enseignants (roleid=3) inscrits à un cours Moodle.
+        Nécessite que le service web core_enrol_get_enrolled_users soit activé côté Moodle.
+        Retourne une liste de dicts utilisateurs (id, username, firstname, lastname, email...)
+        """
+        try:
+            params = {'courseid': course_id}
+            users = self._request('core_enrol_get_enrolled_users', params)
+            if not isinstance(users, list):
+                return []
+            teachers = []
+            for user in users:
+                # Vérifier les rôles attribués à l'utilisateur dans ce cours
+                roles = user.get('roles', [])
+                for role in roles:
+                    if role.get('roleid') == 3:  # 3 = enseignant
+                        teachers.append(user)
+                        break
+            return teachers
+        except Exception as e:
+            print(f"Erreur lors de la récupération des enseignants du cours {course_id}: {e}")
+            return []
     def __init__(self, url: str, token: str, fmt: str = 'json'):
         self.base = url
         self.token = token
@@ -755,3 +778,37 @@ class MoodleAPI:
                 'visible': 1,
                 'modules': []
             }]
+    
+
+    def assign_teachers_to_course(self, course_id, usernames):
+        """
+        Affecte un ou plusieurs profs (usernames LDAP) au cours comme enseignants (roleid=3 par défaut sur Moodle)
+        Utilise enrol_manual_enrol_users (plus fiable pour l'enrôlement dans un cours).
+        """
+        if not usernames:
+            return None
+        # Récupérer les userids Moodle à partir des usernames
+        userids = []
+        for username in usernames:
+            params = {'field': 'username', 'values[0]': username}
+            result = self._request('core_user_get_users_by_field', params)
+            if isinstance(result, list) and result:
+                userids.append(result[0]['id'])
+        if not userids:
+            return None
+        # Enrôler les users comme enseignants dans le cours (roleid=3)
+        enrolments = []
+        for userid in userids:
+            enrolments.append({
+                'roleid': 3,  # 3 = enseignant
+                'userid': userid,
+                'courseid': course_id
+            })
+        params = {}
+        for i, enrol in enumerate(enrolments):
+            params[f'enrolments[{i}][roleid]'] = enrol['roleid']
+            params[f'enrolments[{i}][userid]'] = enrol['userid']
+            params[f'enrolments[{i}][courseid]'] = enrol['courseid']
+        result = self._request('enrol_manual_enrol_users', params)
+        print(f"[DEBUG][enrol_manual_enrol_users] course_id={course_id} usernames={usernames} userids={userids} params={params}\nRésultat API: {result}")
+        return result

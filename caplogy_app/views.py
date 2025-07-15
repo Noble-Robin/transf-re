@@ -35,6 +35,9 @@ def login_view(request):
 
 # @login_required
 def home_view(request):
+    # Si l'utilisateur n'a aucun accès, afficher une page d'accueil vide/minimale
+    if hasattr(request.user, 'userprofile') and request.user.userprofile.role == 'none':
+        return render(request, 'caplogy_app/home_none.html')
     api = MoodleAPI(
         url=os.getenv('MOODLE_URL'),
         token=os.getenv('MOODLE_TOKEN')
@@ -148,11 +151,8 @@ def category_view(request):
             }
         ]
         messages.warning(request, "Connexion à Moodle indisponible. Affichage des données de test.")
-    
-    return render(request, 'caplogy_app/category.html', {
-        'categories': root_categories,
-        'current_filter': request.GET.get('filter_courses', 'all')
-    })
+        root_categories = [cat for cat in categories if cat.get('parent', 0) == 0]
+    return render(request, 'caplogy_app/category.html', {'categories': root_categories})
 
 # @login_required
 def subcategory_view(request, category_id):
@@ -369,35 +369,55 @@ def is_admin(user):
 # @login_required
 @user_passes_test(is_admin)
 def admin_view(request):
-    # Récupérer les utilisateurs Django avec leurs IDs
     from django.contrib.auth.models import User
-    django_users = User.objects.all()
-    
-    # Enrichir avec les données du UserService
-    users_data = us.get_users()
+    user_service = UserService()
+    ldap_profs = user_service.get_ldap_profs()
     users = []
-    
-    for django_user in django_users:
-        # Trouver les données correspondantes dans UserService
-        user_info = next((u for u in users_data if u['username'] == django_user.username), None)
-        if user_info:
+    # Inclure tous les utilisateurs Django
+    for user in User.objects.all():
+        profile = getattr(user, 'userprofile', None)
+        role = profile.role if profile else 'none'
+        users.append({
+            'id': user.id,
+            'username': user.username,
+            'role': role,
+            'is_ldap_prof': any(user.username == prof['username'] for prof in ldap_profs)
+        })
+    # Inclure les profs LDAP qui n'ont pas encore de compte Django
+    for prof in ldap_profs:
+        if not any(u['username'] == prof['username'] for u in users):
             users.append({
-                'id': django_user.id,
-                'username': django_user.username,
-                'role': 'admin' if django_user.is_staff else user_info.get('role', 'user')
+                'id': None,
+                'username': prof['username'],
+                'role': 'none',
+                'is_ldap_prof': True,
+                'name': prof['name'],
+                'mail': prof['mail']
             })
-    
-    if request.method == 'POST':
-        uname = request.POST.get('username', '').strip()
-        pwd   = request.POST.get('password', '').strip()
-        if not uname or not pwd:
-            messages.error(request, "Remplissez tous les champs")
-        elif not us.add_user(uname, pwd):
-            messages.error(request, "Nom déjà pris")
-        else:
-            messages.success(request, "Utilisateur créé")
+    # Gestion du changement de rôle
+    if request.method == 'POST' and 'change_role' in request.POST:
+        user_id = request.POST.get('user_id')
+        new_role = request.POST.get('new_role')
+        username = request.POST.get('username')
+        try:
+            if user_id:
+                user = User.objects.get(id=user_id)
+            else:
+                # Créer le compte Django si inexistant
+                user, _ = User.objects.get_or_create(username=username)
+            profile = getattr(user, 'userprofile', None)
+            if not profile:
+                from .models import UserProfile
+                profile = UserProfile.objects.create(user=user, role=new_role)
+            else:
+                if new_role in ['admin', 'user', 'none']:
+                    profile.role = new_role
+                    profile.save()
+            messages.success(request, f"Rôle de {username} mis à jour en '{new_role}'")
+        except Exception as e:
+            messages.error(request, f"Erreur lors du changement de rôle: {str(e)}")
         return redirect('admin_page')
-    return render(request, 'caplogy_app/admin.html', {'users': users})
+    return render(request, 'caplogy_app/admin.html', {'users': users, 'ldap_profs': ldap_profs})
 
 def add_category_view(request):
     if request.method == 'POST':
@@ -615,6 +635,7 @@ def create_course(request, course_id=None):
         cat_id = (request.POST.get('subsubcategory') or 
                   request.POST.get('subcategory') or 
                   request.POST.get('category'))
+        selected_profs = request.POST.getlist('profs')
         
         if not cat_id:
             messages.error(request, "Veuillez sélectionner une catégorie")
@@ -630,6 +651,9 @@ def create_course(request, course_id=None):
             if is_edit:
                 # Mettre à jour le cours existant
                 api.update_course(course_id, title, cat_id)
+                # Affecter les profs sélectionnés au cours
+                if selected_profs:
+                    api.assign_teachers_to_course(course_id, selected_profs)
                 
                 # Récupérer et traiter les sections pour l'édition
                 sections = [v for k,v in request.POST.items() if k.startswith('section_')]
@@ -694,6 +718,10 @@ def create_course(request, course_id=None):
                 # Créer un nouveau cours
                 course_id = api.create_course(title, cat_id)
                 if course_id:
+                    # Affecter les profs sélectionnés au cours
+                    if selected_profs:
+                        api.assign_teachers_to_course(course_id, selected_profs)
+                    
                     sections = [v for k,v in request.POST.items() if k.startswith('section_')]
                     
                     # Récupérer les fichiers/URLs associés aux sections
@@ -764,7 +792,8 @@ def create_course(request, course_id=None):
 
     # Préparer le contexte pour le template
     top_cats = api.get_categories(0)
-    
+    user_service = UserService()
+    profs = user_service.get_ldap_profs()
     # Pour le mode édition, construire le chemin de présélection rapide
     preselection_data = None
     
@@ -841,7 +870,8 @@ def create_course(request, course_id=None):
         'categories': top_cats,
         'is_edit': is_edit,
         'course': course_data,
-        'preselection_data': json.dumps(preselection_data) if preselection_data else None
+        'preselection_data': json.dumps(preselection_data) if preselection_data else None,
+        'profs': profs
     }
     return render(request, 'caplogy_app/create_course.html', context)
 

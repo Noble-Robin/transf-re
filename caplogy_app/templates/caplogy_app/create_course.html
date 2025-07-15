@@ -58,6 +58,24 @@
             </div>
         </div>
 
+        <!-- Section Prof(s) -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2>Professeur(s) du cours</h2>
+                <p class="section-description">Sélectionnez un ou plusieurs professeurs à affecter au cours</p>
+            </div>
+            <div class="form-field">
+                <label for="profs">Professeurs</label>
+                <input type="text" id="prof-search" class="modern-input" placeholder="Rechercher un professeur..." style="margin-bottom:8px;">
+                <select id="profs" name="profs" class="modern-select" multiple size="6">
+                    {% for prof in profs %}
+                        <option value="{{ prof.username }}">{{ prof.name }} ({{ prof.username }})</option>
+                    {% endfor %}
+                </select>
+                <div id="selected-profs" style="margin-top:10px;"></div>
+            </div>
+        </div>
+
         <!-- Section Sections -->
         <div class="form-section">
             <div class="section-header">
@@ -147,4 +165,25 @@
 {% endif %}
 
 <script src="{% static 'caplogy_app/js/create_course.js' %}"></script>
+<script>
+// Barre de recherche pour les profs
+const profSearch = document.getElementById('prof-search');
+const profSelect = document.getElementById('profs');
+profSearch.addEventListener('input', function() {
+    const filter = profSearch.value.toLowerCase();
+    Array.from(profSelect.options).forEach(opt => {
+        const text = opt.textContent.toLowerCase();
+        opt.style.display = text.includes(filter) ? '' : 'none';
+    });
+});
+
+// Affichage des profs sélectionnés
+const selectedProfsDiv = document.getElementById('selected-profs');
+profSelect.addEventListener('change', function() {
+    const selected = Array.from(profSelect.selectedOptions).map(opt => opt.textContent);
+    selectedProfsDiv.innerHTML = selected.length
+        ? '<strong>Professeurs sélectionnés :</strong><ul style="margin:4px 0 0 0;padding-left:18px;">' + selected.map(p => `<li>${p}</li>`).join('') + '</ul>'
+        : '';
+});
+</script>
 {% endblock %}
