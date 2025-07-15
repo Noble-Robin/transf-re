@@ -97,6 +97,7 @@ class UserService:
         Récupère tous les utilisateurs de l'OU Utilisateurs Caplogy (profs) depuis LDAP
         """
         try:
+            print("[DEBUG] Tentative de connexion LDAP pour récupérer les professeurs")
             server = Server(settings.AD_SERVER, get_info=ALL, use_ssl=True)
             # Connexion avec un compte de service (à adapter si besoin)
             conn = Connection(
@@ -106,21 +107,35 @@ class UserService:
                 authentication=NTLM,
                 auto_bind=True
             )
+            
             # Recherche dans l'OU Utilisateurs Caplogy
             search_base = 'OU=Utilisateurs Caplogy,' + settings.AD_SEARCH_BASE
+            print(f"[DEBUG] Recherche dans: {search_base}")
+            
             conn.search(
                 search_base,
                 '(objectClass=person)',
                 attributes=['sAMAccountName', 'cn', 'mail']
             )
+            
             profs = []
             for entry in conn.entries:
-                profs.append({
-                    'username': str(entry.sAMAccountName),
-                    'name': str(entry.cn),
-                    'mail': str(entry.mail) if hasattr(entry, 'mail') else ''
-                })
+                username = str(entry.sAMAccountName) if entry.sAMAccountName else ''
+                name = str(entry.cn) if entry.cn else ''
+                mail = str(entry.mail) if hasattr(entry, 'mail') and entry.mail else ''
+                
+                if username and name:  # S'assurer qu'on a au moins un nom d'utilisateur et un nom
+                    profs.append({
+                        'username': username,
+                        'name': name,
+                        'mail': mail
+                    })
+            
+            print(f"[DEBUG] {len(profs)} professeurs trouvés dans LDAP")
             return profs
+            
         except Exception as e:
-            print(f"Erreur LDAP lors de la récupération des profs: {e}")
+            print(f"[ERROR] Erreur LDAP lors de la récupération des profs: {e}")
+            import traceback
+            traceback.print_exc()
             return []

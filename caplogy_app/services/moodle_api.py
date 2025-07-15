@@ -786,16 +786,35 @@ class MoodleAPI:
         Utilise enrol_manual_enrol_users (plus fiable pour l'enrôlement dans un cours).
         """
         if not usernames:
+            print("[DEBUG] Aucun professeur à affecter")
             return None
+            
+        print(f"[DEBUG] Tentative d'affectation de {len(usernames)} professeurs au cours {course_id}")
+        print(f"[DEBUG] Usernames: {usernames}")
+        
         # Récupérer les userids Moodle à partir des usernames
         userids = []
         for username in usernames:
-            params = {'field': 'username', 'values[0]': username}
-            result = self._request('core_user_get_users_by_field', params)
-            if isinstance(result, list) and result:
-                userids.append(result[0]['id'])
+            try:
+                params = {'field': 'username', 'values[0]': username}
+                result = self._request('core_user_get_users_by_field', params)
+                print(f"[DEBUG] Recherche utilisateur {username}: {result}")
+                
+                if isinstance(result, list) and result:
+                    userids.append(result[0]['id'])
+                    print(f"[DEBUG] Utilisateur {username} trouvé avec ID: {result[0]['id']}")
+                else:
+                    print(f"[WARNING] Utilisateur {username} non trouvé dans Moodle")
+            except Exception as e:
+                print(f"[ERROR] Erreur lors de la recherche de l'utilisateur {username}: {e}")
+                continue
+        
         if not userids:
+            print("[ERROR] Aucun utilisateur valide trouvé dans Moodle")
             return None
+            
+        print(f"[DEBUG] {len(userids)} utilisateurs trouvés: {userids}")
+        
         # Enrôler les users comme enseignants dans le cours (roleid=3)
         enrolments = []
         for userid in userids:
@@ -804,11 +823,27 @@ class MoodleAPI:
                 'userid': userid,
                 'courseid': course_id
             })
+        
         params = {}
         for i, enrol in enumerate(enrolments):
             params[f'enrolments[{i}][roleid]'] = enrol['roleid']
             params[f'enrolments[{i}][userid]'] = enrol['userid']
             params[f'enrolments[{i}][courseid]'] = enrol['courseid']
-        result = self._request('enrol_manual_enrol_users', params)
-        print(f"[DEBUG][enrol_manual_enrol_users] course_id={course_id} usernames={usernames} userids={userids} params={params}\nRésultat API: {result}")
-        return result
+            
+        print(f"[DEBUG] Paramètres d'enrôlement: {params}")
+        
+        try:
+            result = self._request('enrol_manual_enrol_users', params)
+            print(f"[DEBUG] Résultat de l'enrôlement: {result}")
+            
+            # Vérifier si l'enrôlement a réussi
+            if result is None or (isinstance(result, dict) and 'exception' not in result):
+                print(f"[SUCCESS] {len(userids)} professeurs affectés avec succès au cours {course_id}")
+                return True
+            else:
+                print(f"[ERROR] Échec de l'enrôlement: {result}")
+                return False
+                
+        except Exception as e:
+            print(f"[ERROR] Erreur lors de l'enrôlement: {e}")
+            return False

@@ -651,9 +651,18 @@ def create_course(request, course_id=None):
             if is_edit:
                 # Mettre à jour le cours existant
                 api.update_course(course_id, title, cat_id)
+                
                 # Affecter les profs sélectionnés au cours
                 if selected_profs:
-                    api.assign_teachers_to_course(course_id, selected_profs)
+                    print(f"[DEBUG] Tentative d'affectation des professeurs: {selected_profs}")
+                    success = api.assign_teachers_to_course(course_id, selected_profs)
+                    if success:
+                        print(f"[SUCCESS] Professeurs affectés avec succès")
+                    else:
+                        print(f"[ERROR] Échec de l'affectation des professeurs")
+                        messages.warning(request, "Le cours a été modifié mais l'affectation des professeurs a échoué")
+                else:
+                    print("[DEBUG] Aucun professeur sélectionné")
                 
                 # Récupérer et traiter les sections pour l'édition
                 sections = [v for k,v in request.POST.items() if k.startswith('section_')]
@@ -718,9 +727,19 @@ def create_course(request, course_id=None):
                 # Créer un nouveau cours
                 course_id = api.create_course(title, cat_id)
                 if course_id:
+                    print(f"[DEBUG] Cours créé avec l'ID: {course_id}")
+                    
                     # Affecter les profs sélectionnés au cours
                     if selected_profs:
-                        api.assign_teachers_to_course(course_id, selected_profs)
+                        print(f"[DEBUG] Tentative d'affectation des professeurs: {selected_profs}")
+                        success = api.assign_teachers_to_course(course_id, selected_profs)
+                        if success:
+                            print(f"[SUCCESS] Professeurs affectés avec succès")
+                        else:
+                            print(f"[ERROR] Échec de l'affectation des professeurs")
+                            messages.warning(request, "Le cours a été créé mais l'affectation des professeurs a échoué")
+                    else:
+                        print("[DEBUG] Aucun professeur sélectionné")
                     
                     sections = [v for k,v in request.POST.items() if k.startswith('section_')]
                     

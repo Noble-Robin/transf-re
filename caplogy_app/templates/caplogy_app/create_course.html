@@ -66,8 +66,11 @@
             </div>
             <div class="form-field">
                 <label for="profs">Professeurs</label>
+                <p class="field-hint" style="margin-bottom:8px; color:#666; font-size:0.9em;">
+                    💡 Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs professeurs
+                </p>
                 <input type="text" id="prof-search" class="modern-input" placeholder="Rechercher un professeur..." style="margin-bottom:8px;">
-                <select id="profs" name="profs" class="modern-select" multiple size="6">
+                <select id="profs" name="profs" class="modern-select" multiple size="6" style="min-height:150px;">
                     {% for prof in profs %}
                         <option value="{{ prof.username }}">{{ prof.name }} ({{ prof.username }})</option>
                     {% endfor %}
@@ -169,6 +172,8 @@
 // Barre de recherche pour les profs
 const profSearch = document.getElementById('prof-search');
 const profSelect = document.getElementById('profs');
+const selectedProfsDiv = document.getElementById('selected-profs');
+
 profSearch.addEventListener('input', function() {
     const filter = profSearch.value.toLowerCase();
     Array.from(profSelect.options).forEach(opt => {
@@ -177,13 +182,31 @@ profSearch.addEventListener('input', function() {
     });
 });
 
-// Affichage des profs sélectionnés
-const selectedProfsDiv = document.getElementById('selected-profs');
+// Améliorer la gestion des sélections multiples
 profSelect.addEventListener('change', function() {
     const selected = Array.from(profSelect.selectedOptions).map(opt => opt.textContent);
     selectedProfsDiv.innerHTML = selected.length
-        ? '<strong>Professeurs sélectionnés :</strong><ul style="margin:4px 0 0 0;padding-left:18px;">' + selected.map(p => `<li>${p}</li>`).join('') + '</ul>'
-        : '';
+        ? '<strong>Professeurs sélectionnés (' + selected.length + ') :</strong><ul style="margin:4px 0 0 0;padding-left:18px;">' + selected.map(p => `<li>${p}</li>`).join('') + '</ul>'
+        : '<span style="color:#666;">Aucun professeur sélectionné</span>';
 });
+
+// Améliorer l'interface pour les sélections multiples
+profSelect.addEventListener('click', function(e) {
+    // Ajouter un effet visuel pour les options sélectionnées
+    setTimeout(() => {
+        Array.from(profSelect.options).forEach(opt => {
+            if (opt.selected) {
+                opt.style.backgroundColor = '#e3f2fd';
+                opt.style.fontWeight = 'bold';
+            } else {
+                opt.style.backgroundColor = '';
+                opt.style.fontWeight = 'normal';
+            }
+        });
+    }, 50);
+});
+
+// Initialiser l'affichage
+profSelect.dispatchEvent(new Event('change'));
 </script>
 {% endblock %}
