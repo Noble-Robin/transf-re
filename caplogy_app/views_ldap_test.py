@@ -5,9 +5,13 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
-from .services.ldap_manager import LDAPManager
 from .services.user_service import UserService
 import json
+
+try:
+    from .services.ldap_manager import LDAPManager
+except ImportError:
+    LDAPManager = None
 
 @login_required
 def ldap_test_view(request):
@@ -33,6 +37,12 @@ def ldap_test_view(request):
 def test_ldap_connection():
     """Test de connexion LDAP"""
     try:
+        if LDAPManager is None:
+            return JsonResponse({
+                'success': False,
+                'message': 'LDAPManager non disponible'
+            })
+            
         ldap_manager = LDAPManager()
         result = ldap_manager.test_connection()
         
@@ -56,6 +66,12 @@ def test_ldap_connection():
 def test_user_authentication(username, password):
     """Test d'authentification utilisateur"""
     try:
+        if LDAPManager is None:
+            return JsonResponse({
+                'success': False,
+                'message': 'LDAPManager non disponible'
+            })
+            
         ldap_manager = LDAPManager()
         result = ldap_manager.authenticate_user(username, password)
         
