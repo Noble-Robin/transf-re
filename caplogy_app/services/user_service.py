@@ -2,6 +2,7 @@ import os, json, hashlib
 from django.conf import settings
 from ..models import UserProfile
 from django.contrib.auth.models import User
+from .ldap_manager import LDAPManager
 
 # AD/LDAP
 from ldap3 import Server, Connection, ALL, NTLM
@@ -97,42 +98,18 @@ class UserService:
         Récupère tous les utilisateurs de l'OU Utilisateurs Caplogy (profs) depuis LDAP
         """
         try:
-            print("[DEBUG] Tentative de connexion LDAP pour récupérer les professeurs")
-            server = Server(settings.AD_SERVER, get_info=ALL, use_ssl=True)
-            # Connexion avec un compte de service (à adapter si besoin)
-            conn = Connection(
-                server,
-                user=f"{settings.AD_DOMAIN}\\{os.getenv('NEXTCLOUD_USER')}",
-                password=os.getenv('NEXTCLOUD_PASSWORD'),
-                authentication=NTLM,
-                auto_bind=True
-            )
+            # Utiliser le nouveau gestionnaire LDAP
+            ldap_manager = LDAPManager()
             
-            # Recherche dans l'OU Utilisateurs Caplogy
-            search_base = 'OU=Utilisateurs Caplogy,' + settings.AD_SEARCH_BASE
-            print(f"[DEBUG] Recherche dans: {search_base}")
+            # Utiliser les credentials Nextcloud comme compte de service
+            service_username = os.getenv('NEXTCLOUD_USER')
+            service_password = os.getenv('NEXTCLOUD_PASSWORD')
             
-            conn.search(
-                search_base,
-                '(objectClass=person)',
-                attributes=['sAMAccountName', 'cn', 'mail']
-            )
+            print(f"[DEBUG] Récupération des professeurs via LDAP")
+            users = ldap_manager.get_all_users(service_username, service_password)
             
-            profs = []
-            for entry in conn.entries:
-                username = str(entry.sAMAccountName) if entry.sAMAccountName else ''
-                name = str(entry.cn) if entry.cn else ''
-                mail = str(entry.mail) if hasattr(entry, 'mail') and entry.mail else ''
-                
-                if username and name:  # S'assurer qu'on a au moins un nom d'utilisateur et un nom
-                    profs.append({
-                        'username': username,
-                        'name': name,
-                        'mail': mail
-                    })
-            
-            print(f"[DEBUG] {len(profs)} professeurs trouvés dans LDAP")
-            return profs
+            print(f"[DEBUG] {len(users)} professeurs trouvés dans LDAP")
+            return users
             
         except Exception as e:
             print(f"[ERROR] Erreur LDAP lors de la récupération des profs: {e}")

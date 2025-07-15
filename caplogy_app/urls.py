@@ -4,6 +4,7 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect
 from .views_school_image import school_image_upload
 from .views_add_category import add_category_page
+from .views_ldap_test import ldap_test_view
 
 urlpatterns = [
     path('logout/', lambda r: (logout(r), redirect('login'))[1], name='logout'),
@@ -29,4 +30,7 @@ urlpatterns = [
     path('courses/delete/<int:course_id>/', views.delete_course, name='delete_course'),
     path('nc_dir/', views.list_nc_dir, name='list_nc_dir'),
     path('categories/<int:category_id>/school-image/', school_image_upload, name='school_image_upload'),
+    
+    # Test LDAP
+    path('admin/ldap-test/', ldap_test_view, name='ldap_test'),
 ]

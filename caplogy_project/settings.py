@@ -9,7 +9,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'votre-clé-secrète-à-remplacer')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else []
+
+# Configuration ALLOWED_HOSTS
+allowed_hosts_from_env = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else []
+ALLOWED_HOSTS = allowed_hosts_from_env + [
+    'localhost',
+    '127.0.0.1',
+    'intranet.caplogy.com',
+    # Ajoutez d'autres domaines si nécessaire
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -82,6 +90,15 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 # LDAP / Active Directory configuration
-AD_SERVER = os.getenv('AD_SERVER')
-AD_DOMAIN = os.getenv('AD_DOMAIN')
-AD_SEARCH_BASE = os.getenv('AD_SEARCH_BASE')
+AD_SERVER = os.getenv('AD_SERVER', 'ldaps://10.3.0.107')
+AD_DOMAIN = os.getenv('AD_DOMAIN', 'CAPLOGY')
+AD_SEARCH_BASE = os.getenv('AD_SEARCH_BASE', 'DC=CAPLOGY,DC=LOCAL')
+
+# Configuration LDAP avancée
+LDAP_BIND_DN = os.getenv('LDAP_BIND_DN', '')  # DN complet pour la connexion service
+LDAP_BIND_PASSWORD = os.getenv('LDAP_BIND_PASSWORD', '')  # Mot de passe pour la connexion service
+LDAP_USER_SEARCH_BASE = os.getenv('LDAP_USER_SEARCH_BASE', 'OU=Utilisateurs Caplogy,DC=CAPLOGY,DC=LOCAL')
+
+# Configuration SSL/TLS pour LDAPS
+LDAP_USE_SSL = True
+LDAP_SSL_VERIFY = False  # Mettre à True en production avec certificat valide

@@ -1,0 +1,300 @@
+{% extends 'caplogy_app/base.html' %}
+{% load static %}
+
+{% block title %}Test LDAP{% endblock %}
+
+{% block extra_css %}
+<style>
+.test-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.test-section {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.test-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.test-button:hover {
+    background: #0056b3;
+}
+
+.test-button:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.result-box {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 10px;
+    white-space: pre-wrap;
+    font-family: monospace;
+}
+
+.result-success {
+    background: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.result-error {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.loading {
+    display: none;
+    color: #007bff;
+    font-style: italic;
+}
+
+.user-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.user-item {
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="test-container">
+    <h1>🔍 Test de configuration LDAP</h1>
+    <p>Utilisez cette interface pour tester la connexion et la configuration LDAP.</p>
+    
+    <!-- Test de connexion de base -->
+    <div class="test-section">
+        <h2>1. Test de connexion au serveur LDAP</h2>
+        <p>Vérifie que le serveur LDAP est accessible et que la configuration SSL est correcte.</p>
+        
+        <button class="test-button" onclick="testConnection()">Tester la connexion</button>
+        <div class="loading" id="loading-connection">🔄 Test en cours...</div>
+        <div id="result-connection" class="result-box" style="display: none;"></div>
+    </div>
+    
+    <!-- Test d'authentification -->
+    <div class="test-section">
+        <h2>2. Test d'authentification utilisateur</h2>
+        <p>Teste l'authentification d'un utilisateur spécifique.</p>
+        
+        <div class="form-group">
+            <label for="auth-username">Nom d'utilisateur:</label>
+            <input type="text" id="auth-username" placeholder="Exemple: t.frescaline">
+        </div>
+        
+        <div class="form-group">
+            <label for="auth-password">Mot de passe:</label>
+            <input type="password" id="auth-password" placeholder="Mot de passe">
+        </div>
+        
+        <button class="test-button" onclick="testAuthentication()">Tester l'authentification</button>
+        <div class="loading" id="loading-auth">🔄 Test en cours...</div>
+        <div id="result-auth" class="result-box" style="display: none;"></div>
+    </div>
+    
+    <!-- Test de récupération des utilisateurs -->
+    <div class="test-section">
+        <h2>3. Test de récupération des utilisateurs</h2>
+        <p>Récupère la liste des professeurs depuis l'Active Directory.</p>
+        
+        <button class="test-button" onclick="testGetUsers()">Récupérer les utilisateurs</button>
+        <div class="loading" id="loading-users">🔄 Test en cours...</div>
+        <div id="result-users" class="result-box" style="display: none;"></div>
+        <div id="users-list" class="user-list" style="display: none;"></div>
+    </div>
+    
+    <!-- Test du service utilisateur -->
+    <div class="test-section">
+        <h2>4. Test du service utilisateur</h2>
+        <p>Teste le service utilisateur complet utilisé par l'application.</p>
+        
+        <button class="test-button" onclick="testUserService()">Tester le service</button>
+        <div class="loading" id="loading-service">🔄 Test en cours...</div>
+        <div id="result-service" class="result-box" style="display: none;"></div>
+    </div>
+</div>
+
+<script>
+function showLoading(testType) {
+    document.getElementById(`loading-${testType}`).style.display = 'block';
+    document.getElementById(`result-${testType}`).style.display = 'none';
+}
+
+function hideLoading(testType) {
+    document.getElementById(`loading-${testType}`).style.display = 'none';
+}
+
+function showResult(testType, success, message, data = null) {
+    hideLoading(testType);
+    
+    const resultDiv = document.getElementById(`result-${testType}`);
+    resultDiv.style.display = 'block';
+    resultDiv.className = `result-box ${success ? 'result-success' : 'result-error'}`;
+    
+    let content = success ? '✅ ' : '❌ ';
+    content += message;
+    
+    if (data) {
+        content += '\n\nDétails:\n' + JSON.stringify(data, null, 2);
+    }
+    
+    resultDiv.textContent = content;
+}
+
+function testConnection() {
+    showLoading('connection');
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: 'test_type=connection'
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResult('connection', data.success, data.message, data.server_info);
+    })
+    .catch(error => {
+        showResult('connection', false, 'Erreur de connexion: ' + error.message);
+    });
+}
+
+function testAuthentication() {
+    const username = document.getElementById('auth-username').value;
+    const password = document.getElementById('auth-password').value;
+    
+    if (!username || !password) {
+        alert('Veuillez saisir un nom d\'utilisateur et un mot de passe');
+        return;
+    }
+    
+    showLoading('auth');
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `test_type=auth&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResult('auth', data.success, data.message, data.user_info);
+        
+        // Vider les champs après le test
+        document.getElementById('auth-password').value = '';
+    })
+    .catch(error => {
+        showResult('auth', false, 'Erreur de connexion: ' + error.message);
+    });
+}
+
+function testGetUsers() {
+    showLoading('users');
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: 'test_type=users'
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResult('users', data.success, data.message);
+        
+        if (data.success && data.users) {
+            const usersList = document.getElementById('users-list');
+            usersList.innerHTML = '';
+            
+            data.users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-item';
+                userDiv.innerHTML = `
+                    <strong>${user.username}</strong> - ${user.name}
+                    ${user.mail ? `<br><small>📧 ${user.mail}</small>` : ''}
+                `;
+                usersList.appendChild(userDiv);
+            });
+            
+            usersList.style.display = 'block';
+        }
+    })
+    .catch(error => {
+        showResult('users', false, 'Erreur de connexion: ' + error.message);
+    });
+}
+
+function testUserService() {
+    showLoading('service');
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: 'test_type=service'
+    })
+    .then(response => response.json())
+    .then(data => {
+        showResult('service', data.success, data.message, data.sample);
+    })
+    .catch(error => {
+        showResult('service', false, 'Erreur de connexion: ' + error.message);
+    });
+}
+</script>
+
+{% csrf_token %}
+{% endblock %}
